@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>(Vanilla) Star Wars Meets Pokémon</title>
+
+    <style>
+      /* CSS reset stuff */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      ul {
+        padding: 0;
+      }
+
+      body,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      ul,
+      li {
+        margin: 0;
+      }
+      /* CSS reset stuff */
+
+      body {
+        background-color: #282c35;
+        color: white;
+        font-family: Avenir, Helvetica, sans-serif;
+      }
+
+      header h1 {
+        padding: 20px;
+      }
+
+      main {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      section {
+        width: 48%;
+        margin: 10px;
+        border-radius: 6px;
+        box-shadow: rgba(26, 26, 27, 0.635) 0px 2px 15px 0px;
+      }
+
+      section header h2 {
+        padding: 20px;
+      }
+
+      section.star-wars header {
+        background-color: #d0d242;
+        color: black;
+      }
+
+      section.pokemon header {
+        background-color: #88313b;
+      }
+
+      ul {
+        height: 80vh;
+        overflow-y: auto;
+      }
+
+      li {
+        display: flex;
+        list-style-type: none;
+        justify-content: space-between;
+        padding: 40px 20px;
+        border-bottom: 1px solid #ffffff57;
+        text-transform: capitalize;
+      }
+
+      ul div,
+      ul h2 {
+        text-align: center;
+        margin-top: 50px;
+      }
+
+      button {
+        border-radius: 6px;
+        padding: 24px;
+        font-size: 24px;
+      }
+
+      .try-again {
+        margin-top: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Multiversal Data Fetcher</h1>
+    </header>
+
+    <main>
+      <section class="star-wars">
+        <header>
+          <h2>Star Wars</h2>
+        </header>
+
+        <ul></ul>
+      </section>
+
+      <section class="pokemon">
+        <header>
+          <h2>Pokémon</h2>
+        </header>
+
+        <ul></ul>
+      </section>
+    </main>
+
+    <script>
+      const statuses = {
+        idle: 'idle',
+        fetching: 'fetching',
+        error: 'error',
+        success: 'success'
+      };
+
+      // Bundles the necessary logic to fetch data
+      // Includes fetch, cancellation, and error/success handling
+      const createFetcher = () => {
+        const actions = {
+          init: { type: 'INIT' },
+          fetch: { type: 'FETCH' },
+          cancel: { type: 'CANCEL' },
+          error: (message) => ({ type: 'ERROR', message }),
+          success: (data) => ({ type: 'SUCCESS', data })
+        };
+
+        const initialState = {
+          status: statuses.idle,
+          message: null,
+          data: []
+        };
+
+        const reducer = (state = initialState, action) => {
+          switch (action.type) {
+            case actions.init.type:
+              return initialState;
+
+            case actions.fetch.type:
+              return {
+                ...state,
+                status: statuses.fetching
+              };
+
+            case actions.cancel.type:
+              return {
+                ...state,
+                status: statuses.idle
+              };
+
+            case actions.error().type:
+              return {
+                ...state,
+                status: statuses.error,
+                message: action.message
+              };
+
+            case actions.success().type:
+              return {
+                ...state,
+                status: statuses.success,
+                data: action.data
+              };
+          }
+        };
+
+        const listeners = [];
+        let currentState = initialState;
+
+        return {
+          actions,
+          reducer,
+          initialState,
+          statuses,
+          getState: () => currentState,
+          subscribe: (listener) => {
+            listeners.push(listener);
+          },
+          dispatch: (action) => {
+            currentState = reducer(currentState, action);
+
+            listeners.forEach((listener) => listener());
+          }
+        };
+      };
+
+      const starWarsList = document.querySelector('section.star-wars ul');
+      const swapiFetcher = createFetcher();
+
+      swapiFetcher.subscribe(() => {
+        const latestState = swapiFetcher.getState();
+
+        starWarsList.innerHTML = '';
+
+        switch (latestState.status) {
+          case statuses.idle: {
+            const onClick = () =>
+              swapiFetcher.dispatch(swapiFetcher.actions.fetch);
+
+            const template = `
+                <div>
+                    <button onclick="(${onClick})()">I am your fetcher!</button>
+                </div>
+              `;
+
+            starWarsList.innerHTML = template;
+
+            break;
+          }
+
+          case statuses.fetching: {
+            starWarsList.innerHTML = '<h2>Loading...</h2>';
+
+            fetch('https://swapi.co/api/people/?format=json')
+              .then((res) => res.json())
+              .then((data) => {
+                swapiFetcher.dispatch(swapiFetcher.actions.success(data));
+              })
+              .catch((error) => {
+                swapiFetcher.dispatch(
+                  swapiFetcher.actions.error(error.message)
+                );
+              });
+
+            break;
+          }
+
+          case statuses.error: {
+            const onClick = () =>
+              swapiFetcher.dispatch(swapiFetcher.actions.fetch);
+
+            starWarsList.innerHTML = `
+              <div>
+                <h2>
+                  Something went wrong! ${latestState.message}
+                </h2>
+                <button class="try-again" onclick="(${onClick})()">Try again?</button>
+              </div>`;
+
+            break;
+          }
+
+          case statuses.success: {
+            const starWarsListItems = latestState.data.results
+              .map(
+                (d) => `
+              <li>
+                  <h3>${d.name}</h3>
+              </li>
+            `
+              )
+              .join('');
+
+            starWarsList.innerHTML = starWarsListItems;
+          }
+        }
+      });
+
+      swapiFetcher.dispatch(swapiFetcher.actions.init);
+
+      const pokemonList = document.querySelector('section.pokemon ul');
+      const pokemonFetcher = createFetcher();
+
+      pokemonFetcher.subscribe(() => {
+        const latestState = pokemonFetcher.getState();
+
+        pokemonList.innerHTML = '';
+
+        switch (latestState.status) {
+          case statuses.idle: {
+            const onClick = () =>
+              pokemonFetcher.dispatch(pokemonFetcher.actions.fetch);
+
+            const template = `
+                <div>
+                    <button onclick="(${onClick})()">Gotta fetch 'em all!</button>
+                </div>
+              `;
+
+            pokemonList.innerHTML = template;
+
+            break;
+          }
+
+          case statuses.fetching: {
+            pokemonList.innerHTML = '<h2>Loading...</h2>';
+
+            fetch('https://pokeapi.co/api/v2/pokemon')
+              .then((res) => res.json())
+              .then((data) => {
+                pokemonFetcher.dispatch(pokemonFetcher.actions.success(data));
+              })
+              .catch((error) => {
+                pokemonFetcher.dispatch(
+                  pokemonFetcher.actions.error(error.message)
+                );
+              });
+
+            break;
+          }
+
+          case statuses.error: {
+            const onClick = () =>
+              pokemonFetcher.dispatch(pokemonFetcher.actions.fetch);
+
+            pokemonList.innerHTML = `
+              <div>
+                <h2>
+                  Something went wrong! ${latestState.message}
+                </h2>
+                <button class="try-again" onclick="(${onClick})()">Try again?</button>
+              </div>`;
+
+            break;
+          }
+
+          case statuses.success: {
+            const pokemonListItems = latestState.data.results
+              .map(
+                (d) => `
+              <li>
+                  <h3>${d.name}</h3>
+              </li>
+            `
+              )
+              .join('');
+
+            pokemonList.innerHTML = pokemonListItems;
+          }
+        }
+      });
+
+      pokemonFetcher.dispatch(pokemonFetcher.actions.init);
+    </script>
+  </body>
+</html>
