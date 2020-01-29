@@ -1,26 +1,29 @@
-import React from 'react';
+import React from "react";
 import {
   createFetcher,
   statuses,
   swapiEndpoint,
   pokeapiEndpoint
-} from './createFetcher';
-import './App.css';
+} from "./createFetcher";
+import "./App.css";
 
 const DataViewer = ({ className, title }) => {
+  // Setup each DataViewer's local state
   const { actions, reducer, initialState } = createFetcher();
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
+  // Only fetch data when we're in the "fetching" state
   React.useEffect(() => {
-    const endpoint = title === 'Star Wars' ? swapiEndpoint : pokeapiEndpoint;
+    const endpoint = title === "Star Wars" ? swapiEndpoint : pokeapiEndpoint;
 
     if (state.status === statuses.fetching) {
       fetch(endpoint)
-        .then((res) => res.json())
-        .then((data) => {
+        .then(res => res.json())
+        .then(data => {
+          // TODO: Consider when user cancels while data is fetching
           dispatch(actions.success(data));
         })
-        .catch((error) => {
+        .catch(error => {
           dispatch(actions.error(error.message));
         });
     }
@@ -30,7 +33,7 @@ const DataViewer = ({ className, title }) => {
     switch (state.status) {
       case statuses.idle: {
         const buttonText =
-          title === 'Star Wars' ? 'I am your fetcher!' : "Gotta fetch 'em all!";
+          title === "Star Wars" ? "I am your fetcher!" : "Gotta fetch 'em all!";
 
         return (
           <div>
@@ -64,11 +67,14 @@ const DataViewer = ({ className, title }) => {
         );
 
       case statuses.success:
-        return state.data.results.map((d) => (
+        return state.data.results.map(d => (
           <li key={d.name}>
             <h3>{d.name}</h3>
           </li>
         ));
+
+      default:
+        return <code>This case should never happen</code>;
     }
   };
 

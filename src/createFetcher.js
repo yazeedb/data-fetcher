@@ -1,20 +1,20 @@
-export const swapiEndpoint = 'https://swapi.co/api/people/?format=json';
-export const pokeapiEndpoint = 'https://pokeapi.co/api/v2/pokemon';
+export const swapiEndpoint = "https://swapi.co/api/people/?format=json";
+export const pokeapiEndpoint = "https://pokeapi.co/api/v2/pokemon";
 
 export const statuses = {
-  idle: 'idle',
-  fetching: 'fetching',
-  error: 'error',
-  success: 'success'
+  idle: "idle",
+  fetching: "fetching",
+  error: "error",
+  success: "success"
 };
 
 export const createFetcher = () => {
   const actions = {
-    init: { type: 'INIT' },
-    fetch: { type: 'FETCH' },
-    cancel: { type: 'CANCEL' },
-    error: (message) => ({ type: 'ERROR', message }),
-    success: (data) => ({ type: 'SUCCESS', data })
+    init: { type: "INIT" },
+    fetch: { type: "FETCH" },
+    cancel: { type: "CANCEL" },
+    error: message => ({ type: "ERROR", message }),
+    success: data => ({ type: "SUCCESS", data })
   };
 
   const initialState = {
@@ -53,6 +53,9 @@ export const createFetcher = () => {
           status: statuses.success,
           data: action.data
         };
+
+      default:
+        return state;
     }
   };
 
