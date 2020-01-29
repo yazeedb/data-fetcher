@@ -1,0 +1,89 @@
+/* CSS reset stuff */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+ul {
+  padding: 0;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+li {
+  margin: 0;
+}
+/* CSS reset stuff */
+
+body {
+  background-color: #282c35;
+  color: white;
+  font-family: Avenir, Helvetica, sans-serif;
+}
+
+header h1 {
+  padding: 20px;
+}
+
+main {
+  display: flex;
+  justify-content: space-between;
+}
+
+section {
+  width: 48%;
+  margin: 10px;
+  border-radius: 6px;
+  box-shadow: rgba(26, 26, 27, 0.635) 0px 2px 15px 0px;
+}
+
+section header h2 {
+  padding: 20px;
+}
+
+section.star-wars header {
+  background-color: #d0d242;
+  color: black;
+}
+
+section.pokemon header {
+  background-color: #88313b;
+}
+
+ul {
+  height: 80vh;
+  overflow-y: auto;
+}
+
+li {
+  display: flex;
+  list-style-type: none;
+  justify-content: space-between;
+  padding: 40px 20px;
+  border-bottom: 1px solid #ffffff57;
+  text-transform: capitalize;
+}
+
+ul div,
+ul h2 {
+  text-align: center;
+  margin-top: 50px;
+}
+
+button {
+  border-radius: 6px;
+  padding: 24px;
+  font-size: 24px;
+}
+
+.try-again {
+  margin-top: 30px;
+}
